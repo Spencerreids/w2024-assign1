@@ -17,7 +17,7 @@ app.get('/api/seasons', async (req, res) => {
 app.get('/api/circuits', async (req, res) => {
     const {data, error} = await supabase
     .from('circuits')
-    .select();
+    .select(`circuitRef, name, location, country, lat, lng, alt, url`);
     res.send(data);
 });
 // Circuit info with a specific named referee
@@ -25,7 +25,7 @@ app.get('/api/circuits/:ref', async (req, res) => {
     if(typeof req.params.ref === "string"){
         const {data, error} = await supabase
         .from('circuits')
-        .select()
+        .select(`circuitRef, name, location, country, lat, lng, alt, url`)
         .like('circuitRef', `%` +req.params.ref.toLowerCase()+`%`);
         if (!data || data.length == 0){res.json({error: "Nothing found :/"})}
         else {res.send(data);}
@@ -34,23 +34,21 @@ app.get('/api/circuits/:ref', async (req, res) => {
 });
 // Circuits within a given year
 app.get('/api/circuits/season/:year', async (req, res) => {
-
     if(!isNaN(Number(req.params.year))){
         const {data, error} = await supabase
         .from('races')
-        .select("circuits(*)", {distinct: true})
+        .select("circuits(alt,lat,lng,url,name,country,location,circuitRef)", {distinct: true})
         .eq("year", req.params.year);
         if (!data || data.length == 0){res.json({error: "Nothing found :/"})}
         else {res.send(data);}
     }
-    
     else {res.json({error: "Put in a year silly :p"})}
 });
 // All Constructor info
 app.get('/api/constructors', async (req, res) => {
     const {data, error} = await supabase
     .from('constructors')
-    .select();
+    .select(`constructorRef, name, nationality, url`);
     res.send(data);
 });
 // Constructor info with a specific Ref
@@ -58,12 +56,12 @@ app.get('/api/constructors/:ref', async (req, res) => {
     if(typeof req.params.ref === "string"){
         const {data, error} = await supabase
         .from('constructors')
-        .select()
+        .select(`constructorRef, name, nationality, url`)
         .ilike('constructorRef', req.params.ref.toLowerCase());
-        if (!data || data.length == 0){res.json({error: "Nothing found :/"})}
+        if (!data || data.length == 0){res.json({error: "Nothing found :/ Matching is strict check your spelling"})}
         else {res.send(data);}
     }
-    else {res.json({error: "Put in a string silly :p"})}
+    else {res.json({error: "Put in a consructor name silly :p"})}
 });
 // Constructor info within a specific year
 app.get('/api/constructors/season/:year', async (req, res) => {
@@ -71,7 +69,7 @@ app.get('/api/constructors/season/:year', async (req, res) => {
     if(!isNaN(Number(req.params.year))){
         const {data, error} = await supabase
         .from('constructorResults')
-        .select("constructors(*), races!inner(year)", {distinct: true})
+        .select("constructors(constructorRef, name, nationality, url), races!inner(year)", {distinct: true})
         .eq("races.year", req.params.year);
         if (!data || data.length == 0){res.json({error: "Nothing found :/"})}
         else {res.send(data);}
@@ -82,7 +80,7 @@ app.get('/api/constructors/season/:year', async (req, res) => {
 app.get('/api/drivers', async (req, res) => {
     const {data, error} = await supabase
     .from('drivers')
-    .select();
+    .select(`driverRef, number, code, surname, forename, dob, nationality, url`);
     res.send(data);
 });
 // Drivers with a specific name 
@@ -90,31 +88,32 @@ app.get('/api/drivers/:ref', async (req, res) => {
     if(typeof req.params.ref === "string"){
         const {data, error} = await supabase
         .from('drivers')
-        .select()
+        .select(`driverRef, number, code, surname, forename, dob, nationality, url`)
         .ilike('driverRef', req.params.ref.toLowerCase());
-        if (!data || data.length == 0){res.json({error: "Nothing found :/"})}
+        if (!data || data.length == 0){res.json({error: "Nothing found :/ Matching is strict, check your spelling"})}
         else {res.send(data);}
     }
-    else {res.json({error: "Put in a string silly :p"})}
+    else {res.json({error: "Put in a driver ref silly :p"})}
 });
 // Drivers whos name begin with supplied string
 app.get('/api/drivers/search/:sub', async (req, res) => {
     if(typeof req.params.sub === "string"){
         const {data, error} = await supabase
         .from('drivers')
-        .select()
+        .select(`driverRef, number, code, surname, forename, dob, nationality, url`)
         .ilike("surname", req.params.sub + `%`);
         if (!data || data.length == 0){res.json({error: "Nothing found :/"})}
         else {res.send(data);}
     }
-    else {res.json({error: "Put in a string silly :p"})}
+    else {res.json({error: "Put in the first letters of a driver's name silly :p"})}
 });
 // Driver info within a specific year
 app.get('/api/drivers/season/:year', async (req, res) => {
     if(!isNaN(Number(req.params.year))){
         const {data, error} = await supabase
         .from('results')
-        .select("drivers(*), races!inner(year)", {distinct: true})
+        .select(`drivers(driverRef, number, code, surname, forename, dob, nationality, url), 
+                races!inner(year)`, {distinct: true})
         .eq("races.year", req.params.year);
         if (!data || data.length == 0){res.json({error: "Nothing found :/"})}
         else {res.send(data);}
@@ -126,31 +125,37 @@ app.get('/api/drivers/race/:raceid', async (req, res) => {
     if(!isNaN(Number(req.params.raceid))){
         const {data, error} = await supabase
         .from('results')
-        .select("drivers(*),raceId", {distinct: true})
+        .select(`drivers(driverRef, number, code, surname, forename, dob, nationality, url),
+                raceId`, {distinct: true})
         .eq("raceId", req.params.raceid);
         if (!data || data.length == 0){res.json({error: "Nothing found :/"})}
         else {res.send(data);}
     }
-    else {res.json({error: "Put in a year silly :p"})}
+    else {res.json({error: "Put in a race ID number silly :p"})}
 });
 // Race info with a specific ID
 app.get('/api/races/:raceid', async (req, res) => {
     if(!isNaN(Number(req.params.raceid))){
         const {data, error} = await supabase
         .from('races')
-        .select("*, circuits(name, location, country)")
+        .select(`year, round, name, date, time, url, fp1_date, fp1_time, 
+                fp2_date, fp2_time, fp3_date, fp3_time, quali_date, quali_time,
+                sprint_date, sprint_time,  
+                circuits(name, location, country)`)
         .eq('raceId', req.params.raceid);
         if (!data || data.length == 0){res.json({error: "Nothing found :/"})}
         else {res.send(data);}
     }
-    else {res.json({error: "Put in a string silly :p"})}
+    else {res.json({error: "Put in a race ID number silly :p"})}
 });
 // Race info for a year (ordered by round)
 app.get('/api/races/season/:year', async (req, res) => {
     if(!isNaN(Number(req.params.year))){
         const {data, error} = await supabase
         .from('races')
-        .select()
+        .select(`year, round, name, date, time, url, fp1_date, fp1_time, 
+                fp2_date, fp2_time, fp3_date, fp3_time, quali_date, quali_time,
+                sprint_date, sprint_time`)
         .eq("year", req.params.year)
         .order("round",{ascending:true});
         if (!data || data.length == 0){res.json({error: "Nothing found :/"})}
@@ -163,7 +168,9 @@ app.get('/api/races/season/:year/:round', async (req, res) => {
     if(!isNaN(Number(req.params.year)) && !isNaN(Number(req.params.round))){
         const {data, error} = await supabase
         .from('races')
-        .select()
+        .select(`year, round, name, date, time, url, fp1_date, fp1_time, 
+                fp2_date, fp2_time, fp3_date, fp3_time, quali_date, quali_time,
+                sprint_date, sprint_time`)
         .match({year: req.params.year, round: req.params.round});
         if (!data || data.length == 0){res.json({error: "Nothing found :/"})}
         else {res.send(data);}
@@ -175,7 +182,9 @@ app.get('/api/races/circuits/:ref', async (req, res) => {
     if(typeof req.params.ref === "string"){
         const {data, error} = await supabase
         .from('races')
-        .select('*, circuits!inner(circuitRef)')
+        .select(`year, round, circuitId,name, date, time, url, fp1_date, fp1_time, 
+                fp2_date, fp2_time, fp3_date, fp3_time, quali_date, quali_time,
+                sprint_date, sprint_time, circuits!inner(circuitRef)`)
         .ilike('circuits.circuitRef', req.params.ref)
         .order("year",{ascending:true});
         if (!data || data.length == 0){res.json({error: "Nothing found :/"})}
@@ -194,7 +203,9 @@ app.get('/api/races/circuits/:ref/season/:year1/:year2', async (req, res) => {
         }
         const {data, error} = await supabase
         .from('races')
-        .select('*, circuits!inner(circuitRef)')
+        .select(`year, round, circuitId,name, date, time, url, fp1_date, fp1_time, 
+                fp2_date, fp2_time, fp3_date, fp3_time, quali_date, quali_time,
+                sprint_date, sprint_time, circuits!inner(circuitRef)`)
         .ilike('circuits.circuitRef', req.params.ref)
         .gte("year", smaller)
         .lte("year", larger)
@@ -202,14 +213,16 @@ app.get('/api/races/circuits/:ref/season/:year1/:year2', async (req, res) => {
         if (!data || data.length == 0){res.json({error: "Nothing found :/"})}
         else {res.send(data);}
     }
-    else {res.json({error: "Put in a circuit name and years correctly silly :p"})}
+    else {res.json({error: "Put in a circuit name and the years correctly silly :p"})}
 });
 // Results info, grouped by provided race (ordered by grid)
 app.get('/api/results/:raceid', async (req, res) => {
     if(!isNaN(Number(req.params.raceid))){
         const {data, error} = await supabase
         .from('results')
-        .select(`*, 
+        .select(`number, grid, position, positionText, positionOrder, points, laps, 
+                time, milliseconds, fastestLap, fastestLapTime,
+                fastestLapSpeed, status(status), 
                 drivers(driverRef, code, forename, surname), 
                 races(name, round, year, date),
                 constructors(name, constructorRef, nationality)`)
@@ -218,14 +231,16 @@ app.get('/api/results/:raceid', async (req, res) => {
         if (!data || data.length == 0){res.json({error: "Nothing found :/"})}
         else {res.send(data);}
     }
-    else {res.json({error: "Put in a year silly :p"})}
+    else {res.json({error: "Put in a race ID number silly :p"})}
 });
 // Results info for a given driver
 app.get('/api/results/driver/:ref', async (req, res) => {
     if(typeof req.params.ref === "string"){
         const {data, error} = await supabase
         .from('results')
-        .select(`*, 
+        .select(`number, grid, position, positionText, positionOrder, points, laps, 
+                time, milliseconds, fastestLap, fastestLapTime,
+                fastestLapSpeed, status(status), 
                 drivers!inner(driverRef, code, forename, surname), 
                 races(name, round, year, date),
                 constructors(name, constructorRef, nationality)`)
@@ -233,7 +248,79 @@ app.get('/api/results/driver/:ref', async (req, res) => {
         if (!data || data.length == 0){res.json({error: "Nothing found :/"})}
         else {res.send(data);}
     }
-    else {res.json({error: "Put in a year silly :p"})}
+    else {res.json({error: "Put in a driver ref silly :p"})}
+});
+// Results info for a given driver, within a range of years
+app.get('/api/results/driver/:ref/season/:year1/:year2', async (req, res) => {
+    if((typeof req.params.ref === "string") && (!isNaN(Number(req.params.year1))) && (!isNaN(Number(req.params.year2)))){
+        let larger = req.params.year1;
+        let smaller = req.params.year2;
+        if(smaller > larger){
+            smaller = req.params.year1;
+            larger = req.params.year2;
+        }
+        const {data, error} = await supabase
+        .from('results')
+        .select(`number, grid, position, positionText, positionOrder, points, laps, 
+                time, milliseconds, fastestLap, fastestLapTime,
+                fastestLapSpeed, status(status), 
+                drivers!inner(driverRef, code, forename, surname), 
+                races!inner(name, round, year, date),
+                constructors(name, constructorRef, nationality)`)
+        .eq("drivers.driverRef", req.params.ref)
+        .gte("races.year", smaller)
+        .lte("races.year", larger);
+        if (!data || data.length == 0){res.json({error: "Nothing found :/"})}
+        else {res.send(data);}
+    }
+    else {res.json({error: "Put in a driver ref and the years correctly silly :p"})}
+});
+// Qualifying info for a specific race (ordered by position)
+app.get('/api/qualifying/:raceid', async (req, res) => {
+    if(!isNaN(Number(req.params.raceid))){
+        const {data, error} = await supabase
+        .from('qualifying')
+        .select(`number, position, q1,q2,q3,
+                drivers(driverRef, code, forename, surname),
+                races(name, round, year, date),
+                constructors(name, constructorRef, nationality)
+                `)
+        .eq("raceId", req.params.raceid)
+        .order("position",{ascending:true});
+        if (!data || data.length == 0){res.json({error: "Nothing found :/"})}
+        else {res.send(data);}
+    }
+    else {res.json({error: "Put in a race ID silly :p"})}
+});
+// Standings info for a specific race
+app.get('/api/standings/drivers/:raceid', async (req, res) => {
+    if(!isNaN(Number(req.params.raceid))){
+        const {data, error} = await supabase
+        .from('driverStandings')
+        .select(`points, position, positionText, wins,
+                drivers(driverRef, code, forename, surname)
+                `)
+        .eq("raceId", req.params.raceid)
+        .order("position",{ascending:true});
+        if (!data || data.length == 0){res.json({error: "Nothing found :/"})}
+        else {res.send(data);}
+    }
+    else {res.json({error: "Put in a race ID silly :p"})}
+});
+
+app.get('/api/standings/constructors/:raceid', async (req, res) => {
+    if(!isNaN(Number(req.params.raceid))){
+        const {data, error} = await supabase
+        .from('constructorStandings')
+        .select(`points, position, positionText, wins,
+                constructors(name, constructorRef, nationality)
+                `)
+        .eq("raceId", req.params.raceid)
+        .order("position",{ascending:true});
+        if (!data || data.length == 0){res.json({error: "Nothing found :/"})}
+        else {res.send(data);}
+    }
+    else {res.json({error: "Put in a race ID silly :p"})}
 });
 
 
@@ -262,11 +349,11 @@ app.listen(8080, () => {
         // console.log('http://localhost:8080/api/races/circuits/7');??
         // console.log('http://localhost:8080/api/races/circuits/7/season/2015/2022');??
         // console.log('http://localhost:8080/api/results/1106');
-    // console.log('http://localhost:8080/api/results/driver/max_verstappen');
-    // console.log('http://localhost:8080/api/results/driver/connolly');
-    // console.log('http://localhost:8080/api/results/drivers/sainz/seasons/2021/2022');
-    // console.log('http://localhost:8080/api/qualifying/1106');
-    // console.log('http://localhost:8080/api/standings/drivers/1120');
-    // console.log('http://localhost:8080/api/standings/constructors/1120');
-    // console.log('http://localhost:8080/api/standings/constructors/asds');
+        // console.log('http://localhost:8080/api/results/driver/max_verstappen');
+        // console.log('http://localhost:8080/api/results/driver/connolly');??
+        // console.log('http://localhost:8080/api/results/driver/sainz/season/2021/2022');
+        // console.log('http://localhost:8080/api/qualifying/1106');
+        // console.log('http://localhost:8080/api/standings/drivers/1120');
+        // console.log('http://localhost:8080/api/standings/constructors/1120');
+        // console.log('http://localhost:8080/api/standings/constructors/asds');
 });
