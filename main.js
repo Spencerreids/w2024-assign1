@@ -36,9 +36,9 @@ app.get('/api/circuits/:ref', async (req, res) => {
 app.get('/api/circuits/season/:year', async (req, res) => {
     if(!isNaN(Number(req.params.year))){
         const {data, error} = await supabase
-        .from('races')
-        .select("circuits(alt,lat,lng,url,name,country,location,circuitRef)", {distinct: true})
-        .eq("year", req.params.year);
+        .from('circuits')
+        .select(`*, races!inner()`)
+        .eq("races.year", req.params.year);
         if (!data || data.length == 0){res.json({error: "Nothing found :/"})}
         else {res.send(data);}
     }
@@ -69,7 +69,7 @@ app.get('/api/constructors/season/:year', async (req, res) => {
     if(!isNaN(Number(req.params.year))){
         const {data, error} = await supabase
         .from('constructorResults')
-        .select("constructors(constructorRef, name, nationality, url), races!inner(year)", {distinct: true})
+        .select("constructors(constructorRef, name, nationality, url), races!inner()", {distinct: true})
         .eq("races.year", req.params.year);
         if (!data || data.length == 0){res.json({error: "Nothing found :/"})}
         else {res.send(data);}
@@ -113,7 +113,7 @@ app.get('/api/drivers/season/:year', async (req, res) => {
         const {data, error} = await supabase
         .from('results')
         .select(`drivers(driverRef, number, code, surname, forename, dob, nationality, url), 
-                races!inner(year)`, {distinct: true})
+                races!inner()`, {distinct: true})
         .eq("races.year", req.params.year);
         if (!data || data.length == 0){res.json({error: "Nothing found :/"})}
         else {res.send(data);}
@@ -184,7 +184,7 @@ app.get('/api/races/circuits/:ref', async (req, res) => {
         .from('races')
         .select(`year, round, circuitId,name, date, time, url, fp1_date, fp1_time, 
                 fp2_date, fp2_time, fp3_date, fp3_time, quali_date, quali_time,
-                sprint_date, sprint_time, circuits!inner(circuitRef)`)
+                sprint_date, sprint_time, circuits!inner()`)
         .ilike('circuits.circuitRef', req.params.ref)
         .order("year",{ascending:true});
         if (!data || data.length == 0){res.json({error: "Nothing found :/"})}
@@ -205,7 +205,7 @@ app.get('/api/races/circuits/:ref/season/:year1/:year2', async (req, res) => {
         .from('races')
         .select(`year, round, circuitId,name, date, time, url, fp1_date, fp1_time, 
                 fp2_date, fp2_time, fp3_date, fp3_time, quali_date, quali_time,
-                sprint_date, sprint_time, circuits!inner(circuitRef)`)
+                sprint_date, sprint_time, circuits!inner()`)
         .ilike('circuits.circuitRef', req.params.ref)
         .gte("year", smaller)
         .lte("year", larger)
@@ -293,7 +293,7 @@ app.get('/api/qualifying/:raceid', async (req, res) => {
     else {res.json({error: "Put in a race ID silly :p"})}
 });
 // Standings info for a specific race
-app.get('/api/standings/drivers/:raceid', async (req, res) => {
+app.get('/api/standings/:raceid/drivers', async (req, res) => {
     if(!isNaN(Number(req.params.raceid))){
         const {data, error} = await supabase
         .from('driverStandings')
@@ -308,7 +308,7 @@ app.get('/api/standings/drivers/:raceid', async (req, res) => {
     else {res.json({error: "Put in a race ID silly :p"})}
 });
 
-app.get('/api/standings/constructors/:raceid', async (req, res) => {
+app.get('/api/standings/:raceid/constructors', async (req, res) => {
     if(!isNaN(Number(req.params.raceid))){
         const {data, error} = await supabase
         .from('constructorStandings')
@@ -330,7 +330,7 @@ app.listen(8080, () => {
         // console.log('http://localhost:8080/api/seasons');
         // console.log('http://localhost:8080/api/circuits');
         // console.log('http://localhost:8080/api/circuits/monza');
-        // console.log('http://localhost:8080/api/circuits/calgary');??
+        // console.log('http://localhost:8080/api/circuits/calgary');
         // console.log('http://localhost:8080/api/constructors');
         // console.log('http://localhost:8080/api/constructors/ferrari');
         // console.log('http://localhost:8080/api/constructors/season/2020');
