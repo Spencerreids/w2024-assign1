@@ -3,7 +3,7 @@
 The index page for the project on glitch: 
 https://absorbed-deluxe-nyala.glitch.me/
 
-Also I am aware there are some of these links that are not required, I had done them prior to knowing so I felt no reason to remove the functionality.
+I am aware there are some of these links that are not required, I had done them prior to knowing so I felt no reason to remove the functionality.
   
 https://absorbed-deluxe-nyala.glitch.me/api/seasons
 
