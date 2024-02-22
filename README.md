@@ -4,6 +4,8 @@ The index page for the project on glitch:
 https://absorbed-deluxe-nyala.glitch.me/
 
 Do note, there are minor differences between the version on github and the version on Glitch. This is simply due to the way I have adapted it to the hosting environment.
+
+Also I am aware there are some of these links that are not required, I had done them prior to knowing so I felt no reason to remove the functionality.
   
 https://absorbed-deluxe-nyala.glitch.me/api/seasons
 
