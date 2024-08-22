@@ -2,7 +2,7 @@ const express = require('express');
 const supa = require('@supabase/supabase-js');
 const app = express();
 const supaUrl = 'https://dpurxnwnkjulaoflmhxw.supabase.co';
-const supaAnonKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImRwdXJ4bndua2p1bGFvZmxtaHh3Iiwicm9sZSI6ImFub24iLCJpYXQiOjE3MDc3OTY4NTMsImV4cCI6MjAyMzM3Mjg1M30.OHzglWzCkve3ZzsOhrXv6slx3uvUgRiLODaBk7Jon6M';
+const supaAnonKey = 'Secret';
 const supabase = supa.createClient(supaUrl, supaAnonKey);
 
 
